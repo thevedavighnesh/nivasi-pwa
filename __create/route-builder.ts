@@ -1,4 +1,5 @@
 import { readdir, stat } from 'node:fs/promises';
+import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Hono } from 'hono';
@@ -9,13 +10,17 @@ const API_BASENAME = '/api';
 const api = new Hono();
 
 // Get current directory
-const __dirname = join(fileURLToPath(new URL('.', import.meta.url)), '../src/app/api');
+const API_DIR = join(fileURLToPath(new URL('.', import.meta.url)), '../src/app/api');
 if (globalThis.fetch) {
   globalThis.fetch = updatedFetch;
 }
 
 // Recursively find all route.js files
 async function findRouteFiles(dir: string): Promise<string[]> {
+  // If directory is missing (e.g., in prod build), return empty and let app run
+  if (!existsSync(dir)) {
+    return [];
+  }
   const files = await readdir(dir);
   let routes: string[] = [];
 
@@ -28,7 +33,7 @@ async function findRouteFiles(dir: string): Promise<string[]> {
         routes = routes.concat(await findRouteFiles(filePath));
       } else if (file === 'route.js') {
         // Handle root route.js specially
-        if (filePath === join(__dirname, 'route.js')) {
+        if (filePath === join(API_DIR, 'route.js')) {
           routes.unshift(filePath); // Add to beginning of array
         } else {
           routes.push(filePath);
@@ -44,7 +49,7 @@ async function findRouteFiles(dir: string): Promise<string[]> {
 
 // Helper function to transform file path to Hono route path
 function getHonoPath(routeFile: string): { name: string; pattern: string }[] {
-  const relativePath = routeFile.replace(__dirname, '');
+  const relativePath = routeFile.replace(API_DIR, '');
   const parts = relativePath.split('/').filter(Boolean);
   const routeParts = parts.slice(0, -1); // Remove 'route.js'
   if (routeParts.length === 0) {
@@ -66,7 +71,7 @@ function getHonoPath(routeFile: string): { name: string; pattern: string }[] {
 // Import and register all routes
 async function registerRoutes() {
   const routeFiles = (
-    await findRouteFiles(__dirname).catch((error) => {
+    await findRouteFiles(API_DIR).catch((error) => {
       console.error('Error finding route files:', error);
       return [];
     })

@@ -68,7 +68,12 @@ export default defineConfig({
     loadFontsFromTailwindSource(),
     addRenderIds(),
     reactRouter(),
-    tsconfigPaths(),
+    // Limit tsconfig resolution to the root project and ignore config errors so
+    // Render does not try to parse mobile/tsconfig.json (which extends expo config)
+    tsconfigPaths({
+      projects: ['./tsconfig.json'],
+      ignoreConfigErrors: true,
+    }),
     aliases(),
     layoutWrapperPlugin(),
   ],
