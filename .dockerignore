@@ -1,0 +1,15 @@
+node_modules
+.git
+.env
+.env.local
+*.md
+.vscode
+.idea
+dist
+build
+coverage
+.DS_Store
+*.log
+npm-debug.log*
+.react-router
+caches
