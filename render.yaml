@@ -5,7 +5,7 @@ services:
     runtime: node
     plan: free
     buildCommand: npm ci && npm run build
-    startCommand: npm start
+    startCommand: react-router-serve ./build/server/index.js --port $PORT --host 0.0.0.0
     healthCheckPath: /
     envVars:
       - key: NODE_VERSION
