@@ -1,0 +1,5 @@
+mobile/
+*.md
+test/
+.env
+.env.*
